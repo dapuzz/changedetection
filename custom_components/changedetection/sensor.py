@@ -8,7 +8,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import CONNECTION_CONFIG_ENTRY_ID
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-
+from homeassistant.helpers import device_registry as dr
+from homeassistant.const import CONF_DEVICE_ID
+from homeassistant.helpers.device_registry import CONNECTION_CONFIG_ENTRY_ID
 
 from .const import ATTR_WATCHES, DOMAIN
 from .coordinator import ChangeDetectionCoordinator
