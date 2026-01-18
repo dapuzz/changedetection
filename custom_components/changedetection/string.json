@@ -1,0 +1,18 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "ChangeDetection.io",
+        "description": "Inserisci URL base e API key (header x-api-key).",
+        "data": {
+          "base_url": "Base URL (senza /api/v1)",
+          "api_key": "API key",
+          "scan_interval": "Intervallo aggiornamento (secondi)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossibile connettersi o credenziali non valide."
+    }
+  }
+}

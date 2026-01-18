@@ -1,0 +1,11 @@
+recheck_watch:
+  name: Recheck watch
+  description: Forza il check manuale di una singola watch (pagina monitorata).
+  fields:
+    uuid:
+      name: UUID
+      description: UUID della watch in changedetection.io.
+      required: true
+      example: "095be615-a8ad-4c33-8e9c-c7612fbf6c9f"
+      selector:
+        text:

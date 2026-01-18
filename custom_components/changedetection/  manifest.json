@@ -1,0 +1,11 @@
+{
+  "domain": "changedetection",
+  "name": "ChangeDetection.io",
+  "version": "0.1.0",
+  "documentation": "https://changedetection.io/docs/api_v1/index.html",
+  "issue_tracker": "https://github.com/dappuzz/changedetection/issues",
+  "codeowners": ["@dapuzz"],
+  "config_flow": true,
+  "iot_class": "local_polling",
+  "requirements": []
+}
