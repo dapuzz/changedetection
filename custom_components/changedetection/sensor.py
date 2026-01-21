@@ -95,7 +95,7 @@ class ChangeDetectionWatchSensor(CoordinatorEntity, SensorEntity):
             or f"Watch {uuid[:8]}"
         )
 
-      @property
+    @property
     def device_info(self) -> DeviceInfo: 
         """Return device info to link entity with device."""
         return DeviceInfo(
