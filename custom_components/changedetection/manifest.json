@@ -1,5 +1,5 @@
 {
-  "domain": "changedetector",
+  "domain": "changedetection",
   "name": "ChangeDetection.io",
   "version": "1.0.0",
   "documentation": "https://changedetection.io/docs/api_v1/index.html",

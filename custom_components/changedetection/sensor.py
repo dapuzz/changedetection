@@ -1,7 +1,7 @@
 """Sensor platform for ChangeDetection.io."""
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -94,7 +94,7 @@ class ChangeDetectorWatchSensor(CoordinatorEntity, SensorEntity):
         data = self.coordinator.data.get("watches", {}).get(self._uuid, {})
         ts = data.get("last_changed")
         if ts:
-            return datetime.fromtimestamp(ts)
+            return datetime.fromtimestamp(ts, tz=timezone.utc)
         return None
 
     @property
@@ -119,8 +119,6 @@ class ChangeDetectorWatchSensor(CoordinatorEntity, SensorEntity):
 class ChangeDetectorSystemInfoSensor(CoordinatorEntity, SensorEntity):
     """Sensor for ChangeDetection.io system information."""
 
-    _attr_state_class = SensorStateClass.MEASUREMENT
-
     def __init__(
         self, coordinator, sensor_type: str, name: str, icon: str
     ) -> None:
@@ -130,6 +128,10 @@ class ChangeDetectorSystemInfoSensor(CoordinatorEntity, SensorEntity):
         self._attr_unique_id = f"systeminfo_{sensor_type}"
         self._attr_name = f"ChangeDetection.io {name}"
         self._attr_icon = icon
+        
+        # State class solo per sensori numerici
+        if sensor_type in ("watch_count", "tag_count"):
+            self._attr_state_class = SensorStateClass.MEASUREMENT
 
     @property
     def native_value(self) -> int | str | None:
