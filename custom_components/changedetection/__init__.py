@@ -78,7 +78,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up ChangeDetection.io from a config entry."""
     session = async_get_clientsession(hass)
-    client = ChangeDetectorClient(
+    client = ChangeDetectionClient(
         entry.data[CONF_BASE_URL],
         entry.data[CONF_API_KEY],
         session,
@@ -91,7 +91,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             tags = await client.list_tags()
             systeminfo = await client.systeminfo()
             notifications = await client.get_notifications()
-        except ChangeDetectorApiError as err:
+        except ChangeDetectionApiError as err:
             raise UpdateFailed(f"Error communicating with API: {err}") from err
         
         return {
