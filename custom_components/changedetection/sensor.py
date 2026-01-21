@@ -1,120 +1,149 @@
 """Sensor platform for ChangeDetection.io."""
 from __future__ import annotations
 
-from homeassistant.components.sensor import SensorEntity
+from datetime import datetime
+from typing import Any
+
+from homeassistant.components.sensor import (
+    SensorEntity,
+    SensorDeviceClass,
+    SensorStateClass,
+)
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_DEVICE_ID
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import CONNECTION_CONFIG_ENTRY_ID
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.helpers import device_registry as dr
-from homeassistant.const import CONF_DEVICE_ID
-from homeassistant.helpers.device_registry import CONNECTION_CONFIG_ENTRY_ID
 
-from .const import ATTR_WATCHES, DOMAIN
-from .coordinator import ChangeDetectionCoordinator
+from .const import DOMAIN
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the sensor platform."""
-    coordinator: ChangeDetectionCoordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+    """Set up ChangeDetection.io sensors."""
+    data = hass.data[DOMAIN][entry.entry_id]
+    coordinator = data["coordinator"]
+    client = data["client"]
 
-    # Device registry per il device principale (config entry)
-    device_registry = dr.async_get(hass)
-    device_entry = device_registry.async_get_or_create(
-        config_entry_id=entry.entry_id,
-        identifiers={(DOMAIN, entry.entry_id)},
-        name=f"ChangeDetection.io {entry.title}",
-        manufacturer="ChangeDetection.io",
-        model="Web Monitor Instance",
+    entities: list[SensorEntity] = []
+
+    # Add watch sensors
+    watches = coordinator.data.get("watches", {})
+    for uuid, info in watches.items():
+        entities.append(
+            ChangeDetectorWatchSensor(
+                coordinator=coordinator,
+                client=client,
+                uuid=uuid,
+                info=info,
+            )
+        )
+
+    # Add system info sensors
+    entities.extend(
+        [
+            ChangeDetectorSystemInfoSensor(
+                coordinator=coordinator,
+                sensor_type="watch_count",
+                name="Watch Count",
+                icon="mdi:counter",
+            ),
+            ChangeDetectorSystemInfoSensor(
+                coordinator=coordinator,
+                sensor_type="tag_count",
+                name="Tag Count",
+                icon="mdi:tag-multiple",
+            ),
+            ChangeDetectorSystemInfoSensor(
+                coordinator=coordinator,
+                sensor_type="version",
+                name="Version",
+                icon="mdi:information",
+            ),
+        ]
     )
-    device_id = device_entry.id
 
-    # Sensori System Info (sul device principale)
-    system_sensors = [
-        ChangeDetectionSystemInfoSensor(coordinator, entry, "watch_count", "Watches Count", device_id),
-        ChangeDetectionSystemInfoSensor(coordinator, entry, "tag_count", "Tags Count", device_id),
-        ChangeDetectionSystemInfoSensor(coordinator, entry, "version", "Version", device_id),
-    ]
-
-    # Sensori per OGNI WATCH (device_id = device principale)
-    watch_sensors = []
-    for uuid, watch_data in coordinator.data.watches.items():
-        watch_title = watch_data.get("title", "Unknown") or "Unnamed Watch"
-        
-        watch_sensors.extend([
-            # Title (statico, ma utile per identificazione)
-            ChangeDetectionWatchSensor(coordinator, entry, uuid, "title", f"{watch_title}", device_id, "text"),
-            # Paused
-            ChangeDetectionWatchSensor(coordinator, entry, uuid, "paused", f"{watch_title} Paused", device_id, "boolean"),
-            # Notification Muted
-            ChangeDetectionWatchSensor(coordinator, entry, uuid, "notification_muted", f"{watch_title} Notifications Muted", device_id, "boolean"),
-            # Last Checked (timestamp)
-            ChangeDetectionWatchSensor(coordinator, entry, uuid, "last_checked", f"{watch_title} Last Checked", device_id, "timestamp"),
-            # Last Changed (timestamp)
-            ChangeDetectionWatchSensor(coordinator, entry, uuid, "last_changed", f"{watch_title} Last Changed", device_id, "timestamp"),
-        ])
-
-    async_add_entities(system_sensors + watch_sensors)
+    async_add_entities(entities)
 
 
-class ChangeDetectionSystemInfoSensor(CoordinatorEntity[ChangeDetectionCoordinator], SensorEntity):
-    """Sensor per System Info."""
+class ChangeDetectorWatchSensor(CoordinatorEntity, SensorEntity):
+    """Sensor representing a ChangeDetection.io watch."""
 
-    _attr_icon = "mdi:information-outline"
-
-    def __init__(self, coordinator: ChangeDetectionCoordinator, entry: ConfigEntry, key: str, name: str, device_id: str) -> None:
-        super().__init__(coordinator)
-        self._attr_unique_id = f"{entry.entry_id}_system_{key}"
-        self._attr_name = f"ChangeDetection {name}"
-        self._attr_device_id = device_id
-        self._attr_has_entity_name = True
-        self.key = key
-
-    @property
-    def native_value(self) -> str | None:
-        return self.coordinator.data.systeminfo.get(self.key)
-
-
-class ChangeDetectionWatchSensor(CoordinatorEntity[ChangeDetectionCoordinator], SensorEntity):
-    """Sensor per singola Watch."""
+    _attr_icon = "mdi:web"
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
 
     def __init__(
-        self,
-        coordinator: ChangeDetectionCoordinator,
-        entry: ConfigEntry,
-        uuid: str,
-        key: str,
-        name: str,
-        device_id: str,
-        native_unit: str | None = None,
+        self, coordinator, client, uuid: str, info: dict[str, Any]
     ) -> None:
+        """Initialize the sensor."""
         super().__init__(coordinator)
+        self._client = client
         self._uuid = uuid
-        self._key = key
-        self._attr_unique_id = f"{entry.entry_id}_{uuid}_{key}"
-        self._attr_name = name
-        self._attr_device_id = device_id
-        self._attr_has_entity_name = True
-        
-        if native_unit == "boolean":
-            self._attr_device_class = "enum"
-            self._attr_options = ["on", "off"]
-        elif native_unit == "timestamp":
-            self._attr_device_class = "timestamp"
+        self._attr_unique_id = f"watch_{uuid}"
+        self._attr_name = (
+            info.get("title")
+            or info.get("page_title")
+            or f"Watch {uuid[:8]}"
+        )
 
     @property
-    def native_value(self) -> str | bool | None:
-        watch = self.coordinator.data.watches.get(self._uuid, {})
-        value = watch.get(self._key)
-        
-        if self._key in ["paused", "notification_muted"]:
-            return "on" if value else "off"
-        elif isinstance(value, (int, float)):
-            # Timestamp Unix
-            return value
-        return str(value) if value else None
+    def native_value(self) -> datetime | None:
+        """Return the state of the sensor."""
+        data = self.coordinator.data.get("watches", {}).get(self._uuid, {})
+        ts = data.get("last_changed")
+        if ts:
+            return datetime.fromtimestamp(ts)
+        return None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return additional attributes."""
+        data = self.coordinator.data.get("watches", {}).get(self._uuid, {})
+        return {
+            "uuid": self._uuid,
+            "url": data.get("url"),
+            "link": data.get("link"),
+            "page_title": data.get("page_title"),
+            "paused": data.get("paused", False),
+            "notification_muted": data.get("notification_muted", False),
+            "method": data.get("method"),
+            "fetch_backend": data.get("fetch_backend"),
+            "last_checked": data.get("last_checked"),
+            "last_error": data.get("last_error"),
+            "tags": data.get("tags", []),
+        }
+
+
+class ChangeDetectorSystemInfoSensor(CoordinatorEntity, SensorEntity):
+    """Sensor for ChangeDetection.io system information."""
+
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(
+        self, coordinator, sensor_type: str, name: str, icon: str
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._sensor_type = sensor_type
+        self._attr_unique_id = f"systeminfo_{sensor_type}"
+        self._attr_name = f"ChangeDetection.io {name}"
+        self._attr_icon = icon
+
+    @property
+    def native_value(self) -> int | str | None:
+        """Return the state of the sensor."""
+        systeminfo = self.coordinator.data.get("systeminfo", {})
+        return systeminfo.get(self._sensor_type)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Return additional attributes for version sensor."""
+        if self._sensor_type == "version":
+            systeminfo = self.coordinator.data.get("systeminfo", {})
+            return {
+                "watch_count": systeminfo.get("watch_count"),
+                "tag_count": systeminfo.get("tag_count"),
+            }
+        return None

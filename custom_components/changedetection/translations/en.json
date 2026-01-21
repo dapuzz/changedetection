@@ -2,17 +2,20 @@
   "config": {
     "step": {
       "user": {
-        "title": "ChangeDetection.io",
-        "description": "Inserisci URL base e API key (header x-api-key).",
+        "title": "Configure ChangeDetection.io",
+        "description": "Enter your ChangeDetection.io instance details",
         "data": {
-          "base_url": "Base URL (senza /api/v1)",
-          "api_key": "API key",
-          "scan_interval": "Intervallo aggiornamento (secondi)"
+          "base_url": "Base URL",
+          "api_key": "API Key"
         }
       }
     },
     "error": {
-      "cannot_connect": "Impossibile connettersi o credenziali non valide."
+      "cannot_connect": "Failed to connect to ChangeDetection.io",
+      "unknown": "Unexpected error occurred"
+    },
+    "abort": {
+      "already_configured": "This ChangeDetection.io instance is already configured"
     }
   }
 }

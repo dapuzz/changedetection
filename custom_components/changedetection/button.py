@@ -1,0 +1,64 @@
+"""Button platform for ChangeDetection.io."""
+from __future__ import annotations
+
+from typing import Any
+
+from homeassistant.components.button import ButtonEntity
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.exceptions import HomeAssistantError
+
+from .api import ChangeDetectorApiError
+from .const import DOMAIN
+
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up ChangeDetection.io buttons."""
+    data = hass.data[DOMAIN][entry.entry_id]
+    coordinator = data["coordinator"]
+    client = data["client"]
+
+    entities: list[ButtonEntity] = []
+
+    # Add recheck button for each watch
+    watches = coordinator.data.get("watches", {})
+    for uuid, info in watches.items():
+        name = (
+            info.get("title")
+            or info.get("page_title")
+            or f"Watch {uuid[:8]}"
+        )
+        entities.append(
+            ChangeDetectorRecheckButton(
+                client=client,
+                uuid=uuid,
+                name=f"{name} Recheck",
+            )
+        )
+
+    async_add_entities(entities)
+
+
+class ChangeDetectorRecheckButton(ButtonEntity):
+    """Button to recheck a watch."""
+
+    _attr_icon = "mdi:refresh"
+
+    def __init__(self, client, uuid: str, name: str) -> None:
+        """Initialize the button."""
+        self._client = client
+        self._uuid = uuid
+        self._attr_name = name
+        self._attr_unique_id = f"recheck_{uuid}"
+
+    async def async_press(self) -> None:
+        """Handle the button press."""
+        try:
+            await self._client.get_watch(self._uuid, recheck=True)
+        except ChangeDetectorApiError as err:
+            raise HomeAssistantError(f"Failed to recheck watch: {err}") from err

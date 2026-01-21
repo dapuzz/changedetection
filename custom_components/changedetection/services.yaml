@@ -1,11 +1,408 @@
-recheck_watch:
-  name: Recheck watch
-  description: Forza il check manuale di una singola watch (pagina monitorata).
+create_watch:
+  name: Create Watch
+  description: Create a new web page change monitor (watch)
+  fields:
+    url:
+      name: URL
+      description: URL to monitor for changes
+      required: true
+      example: "https://example.com"
+      selector:
+        text:
+    title:
+      name: Title
+      description: Custom title for the watch
+      required: false
+      selector:
+        text:
+    tag:
+      name: Tag UUID
+      description: Tag UUID to associate with this watch
+      required: false
+      selector:
+        text:
+    tags:
+      name: Tags
+      description: Array of tag UUIDs
+      required: false
+      selector:
+        object:
+    method:
+      name: HTTP Method
+      description: HTTP method to use
+      required: false
+      selector:
+        select:
+          options:
+            - "GET"
+            - "POST"
+            - "PUT"
+            - "DELETE"
+    fetch_backend:
+      name: Fetch Backend
+      description: Backend to use for fetching content
+      required: false
+      selector:
+        select:
+          options:
+            - "html_requests"
+            - "html_webdriver"
+    processor:
+      name: Processor
+      description: Processor mode for change detection
+      required: false
+      selector:
+        select:
+          options:
+            - "text_json_diff"
+            - "restock_diff"
+
+delete_watch:
+  name: Delete Watch
+  description: Delete a watch by UUID
   fields:
     uuid:
       name: UUID
-      description: UUID della watch in changedetection.io.
+      description: Watch UUID
       required: true
-      example: "095be615-a8ad-4c33-8e9c-c7612fbf6c9f"
       selector:
         text:
+
+update_watch:
+  name: Update Watch
+  description: Update an existing watch
+  fields:
+    uuid:
+      name: UUID
+      description: Watch UUID
+      required: true
+      selector:
+        text:
+    url:
+      name: URL
+      description: URL to monitor
+      required: false
+      selector:
+        text:
+    title:
+      name: Title
+      description: Custom title
+      required: false
+      selector:
+        text:
+    paused:
+      name: Paused
+      description: Whether the watch is paused
+      required: false
+      selector:
+        boolean:
+    notification_muted:
+      name: Notification Muted
+      description: Whether notifications are muted
+      required: false
+      selector:
+        boolean:
+
+recheck_watch:
+  name: Recheck Watch
+  description: Queue a watch for immediate recheck
+  fields:
+    uuid:
+      name: UUID
+      description: Watch UUID
+      required: true
+      selector:
+        text:
+
+pause_watch:
+  name: Pause Watch
+  description: Pause a watch
+  fields:
+    uuid:
+      name: UUID
+      description: Watch UUID
+      required: true
+      selector:
+        text:
+
+unpause_watch:
+  name: Unpause Watch
+  description: Resume a paused watch
+  fields:
+    uuid:
+      name: UUID
+      description: Watch UUID
+      required: true
+      selector:
+        text:
+
+mute_watch:
+  name: Mute Watch
+  description: Mute notifications for a watch
+  fields:
+    uuid:
+      name: UUID
+      description: Watch UUID
+      required: true
+      selector:
+        text:
+
+unmute_watch:
+  name: Unmute Watch
+  description: Unmute notifications for a watch
+  fields:
+    uuid:
+      name: UUID
+      description: Watch UUID
+      required: true
+      selector:
+        text:
+
+get_snapshot:
+  name: Get Snapshot
+  description: Get a snapshot of a watch (fires event changedetector_snapshot_received)
+  fields:
+    uuid:
+      name: UUID
+      description: Watch UUID
+      required: true
+      selector:
+        text:
+    timestamp:
+      name: Timestamp
+      description: Snapshot timestamp or 'latest'
+      required: false
+      default: "latest"
+      selector:
+        text:
+
+get_diff:
+  name: Get Difference
+  description: Get difference between two snapshots (fires event changedetector_diff_received)
+  fields:
+    uuid:
+      name: UUID
+      description: Watch UUID
+      required: true
+      selector:
+        text:
+    from_timestamp:
+      name: From Timestamp
+      description: Starting timestamp or 'previous'
+      required: false
+      default: "previous"
+      selector:
+        text:
+    to_timestamp:
+      name: To Timestamp
+      description: Ending timestamp or 'latest'
+      required: false
+      default: "latest"
+      selector:
+        text:
+    format:
+      name: Format
+      description: Output format
+      required: false
+      default: "htmlcolor"
+      selector:
+        select:
+          options:
+            - "text"
+            - "html"
+            - "htmlcolor"
+            - "markdown"
+    word_diff:
+      name: Word Diff
+      description: Enable word-level diffing
+      required: false
+      default: false
+      selector:
+        boolean:
+
+create_tag:
+  name: Create Tag
+  description: Create a new tag/group
+  fields:
+    title:
+      name: Title
+      description: Tag title
+      required: true
+      selector:
+        text:
+    notification_urls:
+      name: Notification URLs
+      description: Default notification URLs for watches with this tag
+      required: false
+      selector:
+        object:
+    notification_muted:
+      name: Notification Muted
+      description: Whether notifications are muted
+      required: false
+      selector:
+        boolean:
+
+delete_tag:
+  name: Delete Tag
+  description: Delete a tag/group
+  fields:
+    uuid:
+      name: UUID
+      description: Tag UUID
+      required: true
+      selector:
+        text:
+
+update_tag:
+  name: Update Tag
+  description: Update an existing tag
+  fields:
+    uuid:
+      name: UUID
+      description: Tag UUID
+      required: true
+      selector:
+        text:
+    title:
+      name: Title
+      description: Tag title
+      required: false
+      selector:
+        text:
+    notification_urls:
+      name: Notification URLs
+      description: Notification URLs
+      required: false
+      selector:
+        object:
+    notification_muted:
+      name: Notification Muted
+      description: Whether notifications are muted
+      required: false
+      selector:
+        boolean:
+
+recheck_tag:
+  name: Recheck Tag
+  description: Queue all watches in a tag for recheck
+  fields:
+    uuid:
+      name: UUID
+      description: Tag UUID
+      required: true
+      selector:
+        text:
+
+mute_tag:
+  name: Mute Tag
+  description: Mute notifications for a tag
+  fields:
+    uuid:
+      name: UUID
+      description: Tag UUID
+      required: true
+      selector:
+        text:
+
+unmute_tag:
+  name: Unmute Tag
+  description: Unmute notifications for a tag
+  fields:
+    uuid:
+      name: UUID
+      description: Tag UUID
+      required: true
+      selector:
+        text:
+
+search:
+  name: Search
+  description: Search watches by URL or title (fires event changedetector_search_results)
+  fields:
+    query:
+      name: Query
+      description: Search query
+      required: true
+      selector:
+        text:
+    tag:
+      name: Tag
+      description: Limit results to tag name
+      required: false
+      selector:
+        text:
+
+bulk_import:
+  name: Bulk Import
+  description: Import multiple URLs (fires event changedetector_import_completed)
+  fields:
+    urls_text:
+      name: URLs Text
+      description: Line-separated URLs
+      required: true
+      example: "https://example.com\nhttps://example.org"
+      selector:
+        text:
+          multiline: true
+    tag_uuids:
+      name: Tag UUIDs
+      description: Tag UUID to apply
+      required: false
+      selector:
+        text:
+    tag:
+      name: Tag
+      description: Tag name to apply
+      required: false
+      selector:
+        text:
+    proxy:
+      name: Proxy
+      description: Proxy configuration
+      required: false
+      selector:
+        text:
+    dedupe:
+      name: Deduplicate
+      description: Remove duplicate URLs
+      required: false
+      default: true
+      selector:
+        boolean:
+
+add_notifications:
+  name: Add Notification URLs
+  description: Add global notification URLs
+  fields:
+    notification_urls:
+      name: Notification URLs
+      description: List of notification URLs to add
+      required: true
+      example: ["mailto:admin@example.com"]
+      selector:
+        object:
+
+replace_notifications:
+  name: Replace Notification URLs
+  description: Replace all global notification URLs
+  fields:
+    notification_urls:
+      name: Notification URLs
+      description: List of notification URLs
+      required: true
+      example: ["mailto:admin@example.com"]
+      selector:
+        object:
+
+delete_notifications:
+  name: Delete Notification URLs
+  description: Delete global notification URLs
+  fields:
+    notification_urls:
+      name: Notification URLs
+      description: List of notification URLs to delete
+      required: true
+      example: ["mailto:admin@example.com"]
+      selector:
+        object:
