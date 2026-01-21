@@ -1,6 +1,6 @@
 """Constants for ChangeDetection.io integration."""
 
-DOMAIN = "changedetection"
+DOMAIN = "ChangeDetection"
 
 # Configuration
 CONF_BASE_URL = "base_url"

@@ -10,24 +10,24 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .api import changedetectionClient, changedetectionApiError
+from .api import ChangeDetectionClient, ChangeDetectionApiError
 from .const import DOMAIN, CONF_BASE_URL, CONF_API_KEY
 
 
 async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
     """Validate the user input allows us to connect."""
     session = async_get_clientsession(hass)
-    client = changedetectionClient(data[CONF_BASE_URL], data[CONF_API_KEY], session)
+    client = ChangeDetectionClient(data[CONF_BASE_URL], data[CONF_API_KEY], session)
     
     try:
         systeminfo = await client.systeminfo()
-    except changedetectionApiError as err:
+    except ChangeDetectionApiError as err:
         raise ValueError(f"Cannot connect: {err}") from err
     
     return {"title": f"ChangeDetection.io ({systeminfo.get('watch_count', 0)} watches)"}
 
 
-class changedetectionConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class ChangeDetectionConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for ChangeDetection.io."""
 
     VERSION = 1

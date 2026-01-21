@@ -35,7 +35,7 @@ async def async_setup_entry(
     watches = coordinator.data.get("watches", {})
     for uuid, info in watches.items():
         entities.append(
-            changedetectionWatchSensor(
+            ChangeDetectionWatchSensor(
                 coordinator=coordinator,
                 client=client,
                 uuid=uuid,
@@ -47,21 +47,21 @@ async def async_setup_entry(
     # Add system info sensors
     entities.extend(
         [
-            changedetectionSystemInfoSensor(
+            ChangeDetectionSystemInfoSensor(
                 coordinator=coordinator,
                 sensor_type="watch_count",
                 name="Watch Count",
                 icon="mdi:counter",
                 entry_id=entry.entry_id,
             ),
-            changedetectionSystemInfoSensor(
+            ChangeDetectionSystemInfoSensor(
                 coordinator=coordinator,
                 sensor_type="tag_count",
                 name="Tag Count",
                 icon="mdi:tag-multiple",
                 entry_id=entry.entry_id,
             ),
-            changedetectionSystemInfoSensor(
+            ChangeDetectionSystemInfoSensor(
                 coordinator=coordinator,
                 sensor_type="version",
                 name="Version",
@@ -74,7 +74,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class changedetectionWatchSensor(CoordinatorEntity, SensorEntity):
+class ChangeDetectionWatchSensor(CoordinatorEntity, SensorEntity):
     """Sensor representing a ChangeDetection.io watch."""
 
     _attr_icon = "mdi:web"
@@ -130,7 +130,7 @@ class changedetectionWatchSensor(CoordinatorEntity, SensorEntity):
         }
 
 
-class changedetectionSystemInfoSensor(CoordinatorEntity, SensorEntity):
+class ChangeDetectionSystemInfoSensor(CoordinatorEntity, SensorEntity):
     """Sensor for ChangeDetection.io system information."""
 
     def __init__(

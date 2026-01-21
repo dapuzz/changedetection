@@ -15,7 +15,7 @@ import voluptuous as vol
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
 
-from .api import changedetectionClient, changedetectionApiError
+from .api import ChangeDetectionClient, ChangeDetectionApiError
 from .const import (
     DOMAIN,
     CONF_BASE_URL,
@@ -153,7 +153,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         try:
             await client.create_watch(payload)
             await coordinator.async_request_refresh()
-        except changedetectionApiError as err:
+        except ChangeDetectionApiError as err:
             raise HomeAssistantError(f"Failed to create watch: {err}") from err
 
     async def handle_delete_watch(call: ServiceCall) -> None:
@@ -161,7 +161,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         try:
             await client.delete_watch(call.data[ATTR_UUID])
             await coordinator.async_request_refresh()
-        except changedetectionApiError as err:
+        except ChangeDetectionApiError as err:
             raise HomeAssistantError(f"Failed to delete watch: {err}") from err
 
     async def handle_update_watch(call: ServiceCall) -> None:
@@ -172,14 +172,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         try:
             await client.update_watch(uuid, payload)
             await coordinator.async_request_refresh()
-        except changedetectionApiError as err:
+        except ChangeDetectionApiError as err:
             raise HomeAssistantError(f"Failed to update watch: {err}") from err
 
     async def handle_recheck_watch(call: ServiceCall) -> None:
         """Handle recheck watch service."""
         try:
             await client.get_watch(call.data[ATTR_UUID], recheck=True)
-        except changedetectionApiError as err:
+        except ChangeDetectionApiError as err:
             raise HomeAssistantError(f"Failed to recheck watch: {err}") from err
 
     async def handle_pause_watch(call: ServiceCall) -> None:
@@ -187,7 +187,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         try:
             await client.get_watch(call.data[ATTR_UUID], paused="paused")
             await coordinator.async_request_refresh()
-        except changedetectionApiError as err:
+        except ChangeDetectionApiError as err:
             raise HomeAssistantError(f"Failed to pause watch: {err}") from err
 
     async def handle_unpause_watch(call: ServiceCall) -> None:
@@ -195,7 +195,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         try:
             await client.get_watch(call.data[ATTR_UUID], paused="unpaused")
             await coordinator.async_request_refresh()
-        except changedetectionApiError as err:
+        except ChangeDetectionApiError as err:
             raise HomeAssistantError(f"Failed to unpause watch: {err}") from err
 
     async def handle_mute_watch(call: ServiceCall) -> None:
@@ -203,7 +203,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         try:
             await client.get_watch(call.data[ATTR_UUID], muted="muted")
             await coordinator.async_request_refresh()
-        except changedetectionApiError as err:
+        except ChangeDetectionApiError as err:
             raise HomeAssistantError(f"Failed to mute watch: {err}") from err
 
     async def handle_unmute_watch(call: ServiceCall) -> None:
@@ -211,7 +211,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         try:
             await client.get_watch(call.data[ATTR_UUID], muted="unmuted")
             await coordinator.async_request_refresh()
-        except changedetectionApiError as err:
+        except ChangeDetectionApiError as err:
             raise HomeAssistantError(f"Failed to unmute watch: {err}") from err
 
     async def handle_get_snapshot(call: ServiceCall) -> None:
@@ -225,7 +225,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 f"{DOMAIN}_snapshot_received",
                 {ATTR_UUID: uuid, ATTR_TIMESTAMP: timestamp, "content": snapshot},
             )
-        except changedetectionApiError as err:
+        except ChangeDetectionApiError as err:
             raise HomeAssistantError(f"Failed to get snapshot: {err}") from err
 
     async def handle_get_diff(call: ServiceCall) -> None:
@@ -247,7 +247,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     "content": diff,
                 },
             )
-        except changedetectionApiError as err:
+        except ChangeDetectionApiError as err:
             raise HomeAssistantError(f"Failed to get diff: {err}") from err
 
     async def handle_create_tag(call: ServiceCall) -> None:
@@ -262,7 +262,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         try:
             await client.create_tag(payload)
             await coordinator.async_request_refresh()
-        except changedetectionApiError as err:
+        except ChangeDetectionApiError as err:
             raise HomeAssistantError(f"Failed to create tag: {err}") from err
 
     async def handle_delete_tag(call: ServiceCall) -> None:
@@ -270,7 +270,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         try:
             await client.delete_tag(call.data[ATTR_UUID])
             await coordinator.async_request_refresh()
-        except changedetectionApiError as err:
+        except ChangeDetectionApiError as err:
             raise HomeAssistantError(f"Failed to delete tag: {err}") from err
 
     async def handle_update_tag(call: ServiceCall) -> None:
@@ -281,14 +281,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         try:
             await client.update_tag(uuid, payload)
             await coordinator.async_request_refresh()
-        except changedetectionApiError as err:
+        except ChangeDetectionApiError as err:
             raise HomeAssistantError(f"Failed to update tag: {err}") from err
 
     async def handle_recheck_tag(call: ServiceCall) -> None:
         """Handle recheck tag service."""
         try:
             await client.get_tag(call.data[ATTR_UUID], recheck=True)
-        except changedetectionApiError as err:
+        except ChangeDetectionApiError as err:
             raise HomeAssistantError(f"Failed to recheck tag: {err}") from err
 
     async def handle_mute_tag(call: ServiceCall) -> None:
@@ -296,7 +296,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         try:
             await client.get_tag(call.data[ATTR_UUID], muted="muted")
             await coordinator.async_request_refresh()
-        except changedetectionApiError as err:
+        except ChangeDetectionApiError as err:
             raise HomeAssistantError(f"Failed to mute tag: {err}") from err
 
     async def handle_unmute_tag(call: ServiceCall) -> None:
@@ -304,7 +304,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         try:
             await client.get_tag(call.data[ATTR_UUID], muted="unmuted")
             await coordinator.async_request_refresh()
-        except changedetectionApiError as err:
+        except ChangeDetectionApiError as err:
             raise HomeAssistantError(f"Failed to unmute tag: {err}") from err
 
     async def handle_search(call: ServiceCall) -> None:
@@ -318,7 +318,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 f"{DOMAIN}_search_results",
                 {ATTR_QUERY: query, "results": results},
             )
-        except changedetectionApiError as err:
+        except ChangeDetectionApiError as err:
             raise HomeAssistantError(f"Failed to search: {err}") from err
 
     async def handle_bulk_import(call: ServiceCall) -> None:
@@ -336,7 +336,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 f"{DOMAIN}_import_completed",
                 {"imported_uuids": imported},
             )
-        except changedetectionApiError as err:
+        except ChangeDetectionApiError as err:
             raise HomeAssistantError(f"Failed to bulk import: {err}") from err
 
     async def handle_add_notifications(call: ServiceCall) -> None:
@@ -344,7 +344,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         try:
             await client.add_notifications(call.data[ATTR_NOTIFICATION_URLS])
             await coordinator.async_request_refresh()
-        except changedetectionApiError as err:
+        except ChangeDetectionApiError as err:
             raise HomeAssistantError(f"Failed to add notifications: {err}") from err
 
     async def handle_replace_notifications(call: ServiceCall) -> None:
@@ -352,7 +352,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         try:
             await client.replace_notifications(call.data[ATTR_NOTIFICATION_URLS])
             await coordinator.async_request_refresh()
-        except changedetectionApiError as err:
+        except ChangeDetectionApiError as err:
             raise HomeAssistantError(f"Failed to replace notifications: {err}") from err
 
     async def handle_delete_notifications(call: ServiceCall) -> None:
@@ -360,7 +360,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         try:
             await client.delete_notifications(call.data[ATTR_NOTIFICATION_URLS])
             await coordinator.async_request_refresh()
-        except changedetectionApiError as err:
+        except ChangeDetectionApiError as err:
             raise HomeAssistantError(f"Failed to delete notifications: {err}") from err
 
     # Service schemas

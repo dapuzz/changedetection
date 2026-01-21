@@ -160,7 +160,7 @@ unmute_watch:
 
 get_snapshot:
   name: Get Snapshot
-  description: Get a snapshot of a watch (fires event changedetection_snapshot_received)
+  description: Get a snapshot of a watch (fires event ChangeDetection_snapshot_received)
   fields:
     uuid:
       name: UUID
@@ -178,7 +178,7 @@ get_snapshot:
 
 get_diff:
   name: Get Difference
-  description: Get difference between two snapshots (fires event changedetection_diff_received)
+  description: Get difference between two snapshots (fires event ChangeDetection_diff_received)
   fields:
     uuid:
       name: UUID
@@ -318,7 +318,7 @@ unmute_tag:
 
 search:
   name: Search
-  description: Search watches by URL or title (fires event changedetection_search_results)
+  description: Search watches by URL or title (fires event ChangeDetection_search_results)
   fields:
     query:
       name: Query
@@ -335,7 +335,7 @@ search:
 
 bulk_import:
   name: Bulk Import
-  description: Import multiple URLs (fires event changedetection_import_completed)
+  description: Import multiple URLs (fires event ChangeDetection_import_completed)
   fields:
     urls_text:
       name: URLs Text
