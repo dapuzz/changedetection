@@ -50,6 +50,7 @@ class ChangeDetectionRecheckButton(ButtonEntity):
     """Button to recheck a watch."""
 
     _attr_icon = "mdi:refresh"
+    _attr_has_entity_name = True
 
     def __init__(self, client, uuid: str, name: str, entry_id: str) -> None:
         """Initialize the button."""

@@ -79,6 +79,8 @@ class ChangeDetectionWatchSensor(CoordinatorEntity, SensorEntity):
 
     _attr_icon = "mdi:web"
     _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_has_entity_name = True
+
 
     def __init__(
         self, coordinator, client, uuid: str, info: dict[str, Any], entry_id: str
@@ -140,6 +142,8 @@ class ChangeDetectionWatchSensor(CoordinatorEntity, SensorEntity):
 
 class ChangeDetectionSystemInfoSensor(CoordinatorEntity, SensorEntity):
     """Sensor for ChangeDetection.io system information."""
+    
+    _attr_has_entity_name = True
 
     def __init__(
         self, coordinator, sensor_type: str, name: str, icon: str, entry_id: str
