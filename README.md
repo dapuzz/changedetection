@@ -5,6 +5,6 @@ Domain: `changedetection`
 ## Installation
 
 ### HACS (recommended)
-1. Add custom repository: `https://github.com/dapuzz/changedetection-homeassistant`
+1. Add custom repository: `https://github.com/dapuzz/changedetection`
 2. Search for "ChangeDetection.io"
 3. Click Install
