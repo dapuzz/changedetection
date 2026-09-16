@@ -1,7 +1,7 @@
 {
   "domain": "changedetection",
   "name": "ChangeDetection.io",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "documentation": "https://ChangeDetection.io/docs/api_v1/index.html",
   "requirements": [],
   "codeowners": ["@dapuzz"],
