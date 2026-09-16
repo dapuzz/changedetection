@@ -9,6 +9,8 @@ from typing import Any, Dict, List, Optional
 class ChangeDetectionApiError(Exception):
     """Exception raised for ChangeDetection.io API errors."""
 
+class ChangeDetectionConnectionError(Exception):
+    """Exception raised for ChangeDetection.io Connections errors."""
 
 class ChangeDetectionClient:
     """Client for interacting with ChangeDetection.io API."""
