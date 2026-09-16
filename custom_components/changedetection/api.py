@@ -1,9 +1,12 @@
 """API client for ChangeDetection.io."""
 from __future__ import annotations
 
+import asyncio
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
 import aiohttp
 import async_timeout
-from typing import Any, Dict, List, Optional
 
 
 class ChangeDetectionApiError(Exception):
@@ -11,6 +14,14 @@ class ChangeDetectionApiError(Exception):
 
 class ChangeDetectionConnectionError(Exception):
     """Exception raised for ChangeDetection.io Connections errors."""
+
+
+# Status codes treated as transient/server-side failures for backoff purposes.
+_BACKOFF_STATUS_CODES = {408, 429, 500, 502, 503, 504}
+
+_INITIAL_BACKOFF = timedelta(hours=1)
+_MAX_BACKOFF = timedelta(hours=24)
+
 
 class ChangeDetectionClient:
     """Client for interacting with ChangeDetection.io API."""
@@ -23,6 +34,10 @@ class ChangeDetectionClient:
         self._api_key = api_key
         self._session = session
 
+        # Connection error backoff tracking.
+        self._error_count: int = 0
+        self._last_error_time: Optional[datetime] = None
+
     @property
     def headers(self) -> Dict[str, str]:
         """Return default headers for API requests."""
@@ -31,27 +46,82 @@ class ChangeDetectionClient:
             "Accept": "application/json",
         }
 
+    # ==================== BACKOFF HANDLING ====================
+
+    def _current_backoff(self) -> timedelta:
+        """Return the backoff duration for the current error count."""
+        if self._error_count <= 0:
+            return timedelta(0)
+        # 1st error -> 1h, 2nd -> 2h, 3rd -> 4h, ... capped at 24h.
+        multiplier = 2 ** (self._error_count - 1)
+        backoff = _INITIAL_BACKOFF * multiplier
+        return min(backoff, _MAX_BACKOFF)
+
+    def is_connection_available(self) -> bool:
+        """Return True if a request should be attempted now.
+
+        Returns False if we are still within the backoff window following
+        previous connection errors.
+        """
+        if self._error_count <= 0 or self._last_error_time is None:
+            return True
+
+        backoff = self._current_backoff()
+        next_allowed = self._last_error_time + backoff
+        return datetime.utcnow() >= next_allowed
+
+    def record_connection_error(self) -> None:
+        """Record a connection/server error, advancing the backoff state."""
+        self._error_count += 1
+        self._last_error_time = datetime.utcnow()
+
+    def reset_connection_error(self) -> None:
+        """Reset backoff state after a successful request."""
+        self._error_count = 0
+        self._last_error_time = None
+
+    def _seconds_until_available(self) -> float:
+        """Seconds remaining until the backoff window elapses."""
+        if self._last_error_time is None:
+            return 0.0
+        next_allowed = self._last_error_time + self._current_backoff()
+        remaining = (next_allowed - datetime.utcnow()).total_seconds()
+        return max(remaining, 0.0)
+
     async def _request(self, method: str, path: str, **kwargs: Any) -> Any:
         """Make an API request."""
+        if not self.is_connection_available():
+            raise ChangeDetectionConnectionError(
+                "Skipping request: still within backoff window "
+                f"({self._seconds_until_available():.0f}s remaining after "
+                f"{self._error_count} consecutive error(s))"
+            )
+
         url = f"{self._base_url}/api/v1{path}"
         kwargs.setdefault("headers", {}).update(self.headers)
-        
+
         try:
             async with async_timeout.timeout(30):
                 async with self._session.request(method, url, **kwargs) as resp:
                     if resp.status >= 400:
                         text = await resp.text()
+                        if resp.status in _BACKOFF_STATUS_CODES:
+                            self.record_connection_error()
                         raise ChangeDetectionApiError(
                             f"API error {resp.status} for {url}: {text}"
                         )
-                    
+
+                    self.reset_connection_error()
+
                     content_type = resp.headers.get("Content-Type", "")
                     if "application/json" in content_type:
                         return await resp.json()
                     return await resp.text()
         except aiohttp.ClientError as err:
+            self.record_connection_error()
             raise ChangeDetectionApiError(f"Connection error: {err}") from err
         except asyncio.TimeoutError as err:
+            self.record_connection_error()
             raise ChangeDetectionApiError(f"Timeout error: {err}") from err
 
     # ==================== WATCHES ====================
@@ -231,7 +301,7 @@ class ChangeDetectionClient:
         if proxy:
             params["proxy"] = proxy
         params["dedupe"] = "true" if dedupe else "false"
-        
+
         return await self._request(
             "POST",
             "/import",
